@@ -17,36 +17,39 @@
         android:gravity="center_vertical"
         android:background="@android:color/holo_blue_light" />
 
+    <!-- Self information -->
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="?android:attr/listPreferredItemHeight"
         android:background="?android:attr/activatedBackgroundIndicator"
         android:padding="3dip">
-        <!--<ImageView
+        <ImageView
             android:id="@+id/icon"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:layout_marginRight="2dp"
-            android:src="@drawable/machine" />-->
+            android:src="@drawable/android" />
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="fill_parent">
+
             <TextView
                 android:id="@+id/my_name"
                 android:layout_width="fill_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical" />
+
             <TextView
                 android:id="@+id/my_status"
                 android:layout_width="fill_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:singleLine="true"
-                android:ellipsize="marquee" />
+                android:ellipsize="marquee"
+                android:singleLine="true" />
+
         </LinearLayout>
     </LinearLayout>
 
@@ -54,7 +57,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="@string/label_peers" />
+        android:text="Nearby DJs (Tap to Connect)" />
 
     <View
         android:layout_width="fill_parent"
@@ -73,7 +76,8 @@
     <TextView
         android:id="@id/android:empty"
         android:layout_width="match_parent"
-        android:layout_gravity="center"
         android:layout_height="match_parent"
-        android:text="@string/empty_message" />
+        android:layout_gravity="center"
+        android:text="No nearby DJs discovered.\nIs a nearby device in DJ mode?" />
+
 </LinearLayout>

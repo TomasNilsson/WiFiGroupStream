@@ -1,4 +1,4 @@
-package com.teamadhoc.wifigroupstream;
+package com.teamadhoc.wifigroupstream.speaker;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,16 +8,20 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
+import com.teamadhoc.wifigroupstream.R;
+
 /**
  * A BroadcastReceiver that notifies of important Wi-Fi P2P events.
  */
-public class WiFiDirectBroadcastReceiver extends BroadcastReceiver{
+public class ClientWiFiDirectBroadcastReceiver extends BroadcastReceiver{
+    public static final String TAG = "ClientWiFiDirectBroadcastRec";
+
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
-    private MainActivity activity;
+    private SpeakerActivity activity;
 
-    public WiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel,
-                                       MainActivity activity) {
+    public ClientWiFiDirectBroadcastReceiver(WifiP2pManager manager, WifiP2pManager.Channel channel,
+                                             SpeakerActivity activity) {
         super();
         this.manager = manager;
         this.channel = channel;
@@ -37,9 +41,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver{
             } else {
                 // Wi-Fi P2P is not enabled
                 activity.setIsWifiP2pEnabled(false);
-                activity.resetData();
+                activity.resetDeviceList();
             }
-            Log.d(activity.TAG, "P2P state changed - " + state);
+            Log.d(TAG, "P2P state changed - " + state);
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // The peer list has changed.
             // Request available peers from the Wi-Fi P2P manager. This is an
@@ -47,9 +51,9 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver{
             // callback on PeerListListener.onPeersAvailable()
             if (manager != null) {
                 manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager()
-                        .findFragmentById(R.id.frag_list));
+                        .findFragmentById(R.id.frag_speaker_devices));
             }
-            Log.d(activity.TAG, "P2P peers changed");
+            Log.d(TAG, "P2P peers changed");
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             // Respond to new connection or disconnections
             if (manager == null) {
@@ -62,17 +66,18 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver{
             if (networkInfo.isConnected()) {
                 // We are connected with the other device.
                 // Request connection info to find group owner IP
-                DeviceDetailFragment fragment = (DeviceDetailFragment) activity
-                        .getFragmentManager().findFragmentById(R.id.frag_detail);
+                ClientDeviceListFragment fragment = (ClientDeviceListFragment) activity
+                        .getFragmentManager().findFragmentById(R.id.frag_speaker_devices);
                 manager.requestConnectionInfo(channel, fragment);
             } else {
                 // It's a disconnect
-                activity.resetData();
+                activity.resetDeviceList();
+                activity.disconnect();
             }
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             // Respond to this device's Wi-Fi state changing
-            DeviceListFragment fragment = (DeviceListFragment) activity.getFragmentManager()
-                    .findFragmentById(R.id.frag_list);
+            ClientDeviceListFragment fragment = (ClientDeviceListFragment) activity.getFragmentManager()
+                    .findFragmentById(R.id.frag_speaker_devices);
             fragment.updateThisDevice((WifiP2pDevice) intent.getParcelableExtra(
                     WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
         }
