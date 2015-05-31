@@ -30,6 +30,7 @@ import com.teamadhoc.wifigroupstream.Utilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -331,7 +332,7 @@ public class ServerDeviceListFragment extends ListFragment
 
         try {
             // Copy the music file to the web server directory, then pass the URL to the client
-            File webFile = new File(wwwroot, musicFile.getName());
+            File webFile = new File(wwwroot, URLEncoder.encode(musicFile.getName(), "UTF-8"));
 
             Utilities.copyFile(musicFile, webFile);
 
@@ -340,7 +341,7 @@ public class ServerDeviceListFragment extends ListFragment
 
             serverThread.sendPlay(webMusicURI.toString(), startTime, startPos);
         } catch (IOException e1) {
-            Log.e(TAG, "Cannot copy file to HTTP Server.", e1);
+            Log.e(TAG, "Can't copy file to HTTP Server.", e1);
         }
     }
 

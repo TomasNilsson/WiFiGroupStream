@@ -29,11 +29,10 @@ import com.teamadhoc.wifigroupstream.Timer;
 import com.teamadhoc.wifigroupstream.speaker.ClientDeviceListFragment.SpeakerFragmentListener;
 
 public class SpeakerActivity extends Activity implements ChannelListener,
-        SpeakerFragmentListener
-{
+        SpeakerFragmentListener {
     public final static int SPEAKER_MODE = 1;
 
-    public static final String TAG = "Speaker Mode Activity";
+    public static final String TAG = "SpeakerActivity";
     private WifiP2pManager manager;
     private boolean isWifiP2pEnabled = false;
     private boolean channelRetried = false;
@@ -97,8 +96,6 @@ public class SpeakerActivity extends Activity implements ChannelListener,
         // Start discovering right away!
         discoverDevices();
         keepAliveTimer.start();
-
-        Toast.makeText(SpeakerActivity.this, "Discovery Initiated", Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -137,6 +134,7 @@ public class SpeakerActivity extends Activity implements ChannelListener,
         manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
+                Toast.makeText(SpeakerActivity.this, "Discovery Initiated", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Discovery Initiated.");
             }
 

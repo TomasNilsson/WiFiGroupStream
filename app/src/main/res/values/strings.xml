@@ -16,9 +16,9 @@
     <string name="empty_message">No devices found. Turn on P2P and perform discovery</string>
     <string name="p2p_off_warning">Please enable P2P system settings</string>
     <string name="group_owner_text">"Am I the Group Owner? "</string>
-    <string name="label_me">ME</string>
-    <string name="label_peers">PEERS</string>
-    <string name="title_activity_wi_fi_direct2">WiFi Direct Connect</string>
+    <string name="label_me">Me</string>
+    <string name="label_peers">Peers</string>
+    <string name="title_activity_wi_fi_direct2">Wi-Fi Direct Connect</string>
     <string name="play_music">PLAY</string>
     <string name="stop_music">STOP</string>
 </resources>

@@ -346,7 +346,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
 
             // Changing Button Image to pause image
             btnPlay.setImageResource(R.drawable.btn_pause);
-            mp.prepare(); // TODO: use prepareAsync?
+            mp.prepare(); // prepareAsync doesn't work since we ant the media file to be played synchronously.
 
             // TODO: make sure we have buffered REALLY
             // buffered the music, currently this is a big

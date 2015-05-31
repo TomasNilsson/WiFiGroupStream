@@ -35,7 +35,7 @@ import java.util.List;
 public class ClientDeviceListFragment extends ListFragment
         implements WifiP2pManager.PeerListListener, WifiP2pManager.ConnectionInfoListener, Handler.Callback {
 
-    public static final String TAG = "ClientDeviceListFragment";
+    public static final String TAG = "ClientDeviceList";
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     ProgressDialog progressDialog = null;
     private View contentView = null;

@@ -30,11 +30,10 @@ import com.teamadhoc.wifigroupstream.Utilities;
 import com.teamadhoc.wifigroupstream.dj.ServerDeviceListFragment.DJFragmentListener;
 
 public class DJActivity extends Activity implements WifiP2pManager.ChannelListener,
-        DJFragmentListener
-{
+        DJFragmentListener {
     public final static int DJ_MODE = 15;
 
-    public static final String TAG = "DJ Mode Activity";
+    public static final String TAG = "DJActivity";
     private WifiP2pManager manager;
     private boolean channelRetried = false;
     private boolean isWifiP2pEnabled = false;
