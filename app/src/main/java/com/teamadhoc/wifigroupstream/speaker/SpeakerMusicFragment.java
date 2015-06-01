@@ -96,7 +96,7 @@ public class SpeakerMusicFragment extends Fragment {
             mp.reset();
             mp.setDataSource(url);
             mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mp.prepare(); // prepareAsync doesn't work since we ant the media file to be played synchronously.
+            mp.prepare(); // prepareAsync doesn't work since we want the media file to be played synchronously.
             // TODO: make sure we have buffered REALLY
             // buffered the music, currently this is a big
             // HACK and takes a lot of time. We can do

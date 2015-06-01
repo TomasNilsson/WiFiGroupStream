@@ -198,6 +198,7 @@ public class ClientDeviceListFragment extends ListFragment
         view.setText(device.deviceName);
         view = (TextView) contentView.findViewById(R.id.my_status);
         view.setText(getDeviceStatus(device.status));
+        ((SpeakerActivity) getActivity()).updateMyMac(device.deviceAddress);
     }
 
     @Override

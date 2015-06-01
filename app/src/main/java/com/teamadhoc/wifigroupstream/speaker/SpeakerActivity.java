@@ -15,8 +15,14 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.ChannelListener;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
+import android.nfc.NfcEvent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,14 +35,16 @@ import com.teamadhoc.wifigroupstream.Timer;
 import com.teamadhoc.wifigroupstream.speaker.ClientDeviceListFragment.SpeakerFragmentListener;
 
 public class SpeakerActivity extends Activity implements ChannelListener,
-        SpeakerFragmentListener {
-    public final static int SPEAKER_MODE = 1;
-
+        SpeakerFragmentListener, NfcAdapter.CreateNdefMessageCallback, NfcAdapter.OnNdefPushCompleteCallback {
+    public final static int SPEAKER_MODE = 0; // Indicates the least inclination to be a group owner
     public static final String TAG = "SpeakerActivity";
+    private static final int NFC_MESSAGE_SENT = 1;
     private WifiP2pManager manager;
+    private NfcAdapter nfcAdapter;
     private boolean isWifiP2pEnabled = false;
     private boolean channelRetried = false;
     ProgressDialog progressDialog = null;
+    private String myMac;
 
     private Timer timer;
     private CountDownTimer keepAliveTimer;
@@ -79,6 +87,17 @@ public class SpeakerActivity extends Activity implements ChannelListener,
                 keepAliveTimer.start();
             }
         };
+
+        // Check for available NFC Adapter
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (nfcAdapter == null) {
+            Toast.makeText(this, "NFC is not available on this device.", Toast.LENGTH_LONG).show();
+        } else {
+            // Register callback to set NDEF message
+            nfcAdapter.setNdefPushMessageCallback(this, this);
+            // Register callback to listen for message-sent success
+            nfcAdapter.setOnNdefPushCompleteCallback(this, this);
+        }
     }
 
     public void enableWifi() {
@@ -169,6 +188,45 @@ public class SpeakerActivity extends Activity implements ChannelListener,
             }
         });
     }
+
+    /**
+     * Implementation for the CreateNdefMessageCallback interface
+     */
+    @Override
+    public NdefMessage createNdefMessage(NfcEvent event) {
+        // Include the MAC address in the NdefMessage
+        if (myMac == null) {
+            // TODO: handle error
+            Log.e(TAG, "MAC address not received");
+            return null;
+        }
+        NdefMessage msg = new NdefMessage(NdefRecord.createMime(
+                "application/com.teamadhoc.wifigroupstream", myMac.getBytes())
+        );
+        return msg;
+    }
+
+    /**
+     * Implementation for the OnNdefPushCompleteCallback interface
+     */
+    @Override
+    public void onNdefPushComplete(NfcEvent arg0) {
+        // A handler is needed to send messages to the activity when this
+        // callback occurs, because it happens from a binder thread
+        handler.obtainMessage(NFC_MESSAGE_SENT).sendToTarget();
+    }
+
+    /** This handler receives a message from onNdefPushComplete */
+    private final Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case NFC_MESSAGE_SENT:
+                    Toast.makeText(SpeakerActivity.this, "Connecting...", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+    };
 
     @Override
     public void onPause() {
@@ -401,6 +459,10 @@ public class SpeakerActivity extends Activity implements ChannelListener,
     public Timer retrieveTimer()
     {
         return timer;
+    }
+
+    public void updateMyMac(String macAddress) {
+        myMac = macAddress;
     }
 }
 

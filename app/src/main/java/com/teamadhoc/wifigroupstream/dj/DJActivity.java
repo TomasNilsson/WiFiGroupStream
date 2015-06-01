@@ -11,12 +11,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.nfc.NdefMessage;
+import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,7 +35,7 @@ import com.teamadhoc.wifigroupstream.dj.ServerDeviceListFragment.DJFragmentListe
 
 public class DJActivity extends Activity implements WifiP2pManager.ChannelListener,
         DJFragmentListener {
-    public final static int DJ_MODE = 15;
+    public final static int DJ_MODE = 15; // Indicates the highest inclination to be a group owner
 
     public static final String TAG = "DJActivity";
     private WifiP2pManager manager;
@@ -90,12 +94,44 @@ public class DJActivity extends Activity implements WifiP2pManager.ChannelListen
     @Override
     public void onResume() {
         super.onResume();
-        receiver = new ServerWiFiDirectBroadcastReceiver(manager, channel, this);
-        registerReceiver(receiver, intentFilter);
+        // Check to see that the Activity started due to an Android Beam (NFC)
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
+            processIntent(getIntent());
+        } else {
+            receiver = new ServerWiFiDirectBroadcastReceiver(manager, channel, this);
+            registerReceiver(receiver, intentFilter);
 
-        // Start discovering right away!
-        discoverDevices();
-        keepAliveTimer.start();
+            // Start discovering right away!
+            discoverDevices();
+            keepAliveTimer.start();
+        }
+    }
+
+    // Called when NFC message is received
+    @Override
+    public void onNewIntent(Intent intent) {
+        // onResume gets called after this to handle the intent
+        Log.d(TAG, "onNewIntent");
+        setIntent(intent);
+    }
+
+    // Parses the NDEF (NFC) Message from the intent
+    private void processIntent(Intent intent) {
+        Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
+                NfcAdapter.EXTRA_NDEF_MESSAGES);
+        // Only one message sent during the beam
+        NdefMessage msg = (NdefMessage) rawMsgs[0];
+        WifiP2pConfig config = new WifiP2pConfig();
+        // Record 0 contains the MIME type, record 1 is the AAR, if present
+        config.deviceAddress = new String(msg.getRecords()[0].getPayload());
+        config.wps.setup = WpsInfo.PBC;
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+        progressDialog = ProgressDialog.show(this, "Press back to cancel",
+                "Connecting to: " + config.deviceAddress, true, true);
+
+        connect(config);
     }
 
     public void enableWifi() {
