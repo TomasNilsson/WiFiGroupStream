@@ -29,6 +29,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -78,6 +79,13 @@ public class SpeakerMusicFragment extends Fragment {
 
         // All player buttons
         songProgressBar = (SeekBar) contentView.findViewById(R.id.songProgressBar);
+        // Prevent songProgressBar from being moved manually (can only be moved by code)
+        songProgressBar.setOnTouchListener(new View.OnTouchListener(){
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });
         songTitleLabel = (TextView) contentView.findViewById(R.id.songTitle);
         songCurrentDurationLabel = (TextView) contentView.findViewById(R.id.songCurrentDurationLabel);
         songTotalDurationLabel = (TextView) contentView.findViewById(R.id.songTotalDurationLabel);

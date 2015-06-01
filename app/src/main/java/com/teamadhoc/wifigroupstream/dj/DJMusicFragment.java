@@ -256,7 +256,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
                 AlertDialog.Builder builder = new AlertDialog.Builder(
                         activity, AlertDialog.THEME_HOLO_DARK);
                 musicList = getMusicList().toArray(new String[getMusicList().size()]);
-                builder.setTitle("Select Your Favorite Music!");
+                builder.setTitle("Select Song");
                 builder.setSingleChoiceItems(musicList, -1, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int item){
                         currentSongIndex = item;

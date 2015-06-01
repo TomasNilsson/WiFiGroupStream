@@ -20,7 +20,7 @@
     <!-- Self information -->
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="?android:attr/listPreferredItemHeight"
+        android:layout_height="wrap_content"
         android:background="?android:attr/activatedBackgroundIndicator"
         android:padding="3dip">
         <ImageView
@@ -57,7 +57,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="Connected Speakers" />
+        android:text="@string/label_speakers" />
 
     <View
         android:layout_width="fill_parent"
