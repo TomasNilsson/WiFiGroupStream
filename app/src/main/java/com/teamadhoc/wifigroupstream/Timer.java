@@ -3,14 +3,13 @@ package com.teamadhoc.wifigroupstream;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.util.Log;
-import android.widget.TextView;
 
-public class Timer
-{
+/**
+ * Timer class used to synchronize server and clients
+ * Inspired by https://github.com/bryan-y88/Musics_Around
+ */
+public class Timer {
     private long currTime;
-    // For debugging purposes
-    TextView view = null;
-
     private CountDownTimer timer;
     private long precision;
     private long futurePlayTime;
@@ -27,7 +26,7 @@ public class Timer
     public static final long DEFAULT_TIMER_PRECISION = 25;
 
     /**
-     * Creates a timer that another thread can receive callback messages, and
+     * Creates a timer so that another thread can receive callback messages, and
      * it can count the time from any precision larger than 1 milliseconds
 
      * @param timerPrecision
@@ -36,8 +35,6 @@ public class Timer
      *            ms of precision
      */
     public Timer(long timerPrecision) {
-        view = null;
-
         // Get the system time by default
         setCurrTime(System.currentTimeMillis());
         referenceTime = System.currentTimeMillis();

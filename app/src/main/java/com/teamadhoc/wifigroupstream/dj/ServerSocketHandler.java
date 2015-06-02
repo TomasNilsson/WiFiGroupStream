@@ -17,14 +17,13 @@ import java.util.HashSet;
 public class ServerSocketHandler extends Thread {
     ServerSocket serverSocket = null;
     private static final String TAG = "ServerSocketHandler";
-    public static final int NUM_CONNECTIONS = 10;
     public static final int SERVER_PORT = 9001;
     public static final int SERVER_CALLBACK = 103;
 
     // Use a 10 second time out to receive an ack message
     public static final int ACK_TIMEOUT = 10000;
 
-    // A hashmap of all client socket connections and their corresponding output
+    // A HashSet of all client socket connections and their corresponding output
     // streams for writing
     private HashSet<Socket> connections;
 
@@ -37,7 +36,7 @@ public class ServerSocketHandler extends Thread {
 
     private static final int BUFFER_SIZE = 256;
 
-    // commands the server can send out to the clients
+    // Commands the server can send out to the clients
     public static final String PLAY_CMD = "PLAY";
     public static final String STOP_CMD = "STOP";
     public static final String SYNC_CMD = "SYNC";
@@ -63,7 +62,6 @@ public class ServerSocketHandler extends Thread {
                 Socket clientSocket = serverSocket.accept();
                 Log.d(TAG, "Accepted another client");
 
-                // TODO: convert this to an asynchronous method call later
                 syncClientTime(clientSocket);
 
                 connections.add(clientSocket);
@@ -159,9 +157,8 @@ public class ServerSocketHandler extends Thread {
                     // has been set
                     bytes = iStream.read(buffer);
                     if (bytes != -1) {
-                        // Check for the correct acknowledge message, we don't  want
-                        // to respond to any other messages other than the SYNC
-                        // ack from the client
+                        // Check for the correct acknowledge message, we don't want
+                        // to respond to any other messages other than the SYNC ack from the client
                         String recMsg = new String(buffer);
 
                         String[] cmdString = recMsg.split(CMD_DELIMITER);
@@ -228,6 +225,30 @@ public class ServerSocketHandler extends Thread {
         if (fileName == null) {
             return;
         }
+
+        /*Thread thread = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try {
+                    for (Socket s : connections) {
+                        try {
+                            syncClientTime(s);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Could not communicate to client socket.");
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
+        try {
+            thread.join(); // Wait for thread to finish
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }*/
 
         String command = PLAY_CMD + CMD_DELIMITER + fileName + CMD_DELIMITER
                 + String.valueOf(playTime) + CMD_DELIMITER

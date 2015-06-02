@@ -13,15 +13,6 @@ import android.net.Uri;
 import android.provider.MediaStore;
 
 public class Utilities {
-    // TODO: check if this method is used
-    public static String getRealPathFromUri(Activity activity, Uri contentUri) {
-        String[] proj = { MediaStore.Audio.Media.DATA };
-        Cursor cursor = activity.managedQuery(contentUri, proj, null, null, null);
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
-    }
-
     public static void copyFile(File src, File dst) throws IOException {
         InputStream in = new FileInputStream(src);
         OutputStream out = new FileOutputStream(dst);
@@ -37,8 +28,7 @@ public class Utilities {
     }
 
     /**
-     * Function to convert milliseconds time to
-     * Timer Format
+     * Function to convert milliseconds time to Timer Format
      * Hours:Minutes:Seconds
      * */
     public String milliSecondsToTimer(long milliseconds){

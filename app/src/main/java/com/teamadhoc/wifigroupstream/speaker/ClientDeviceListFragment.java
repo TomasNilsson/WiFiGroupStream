@@ -40,8 +40,6 @@ public class ClientDeviceListFragment extends ListFragment
     ProgressDialog progressDialog = null;
     private View contentView = null;
     private WifiP2pDevice device;
-
-    // TODO: check what we need these variables for
     private final Handler handler = new Handler(this);
     private ClientSocketHandler clientThread;
 
@@ -139,8 +137,6 @@ public class ClientDeviceListFragment extends ListFragment
                 ((SpeakerFragmentListener) getActivity()).discoverDevices();
                 break;
         }
-
-        ((SpeakerFragmentListener) getActivity()).showDetails(device);
     }
 
     /**
@@ -172,12 +168,11 @@ public class ClientDeviceListFragment extends ListFragment
                     top.setText(device.deviceName);
                 }
                 if (bottom != null) {
-                    // Show the invited dialog
                     if (device.status == WifiP2pDevice.INVITED) {
                         if (progressDialog != null && progressDialog.isShowing()) {
                             progressDialog.dismiss();
                         }
-
+                        // Show the invited dialog
                         progressDialog = ProgressDialog.show(getActivity(), "Inviting peer",
                                 "Sent invitation to: " + device.deviceName +
                                         "\n\nTap on peer to revoke invitation.", true, true);
@@ -220,7 +215,6 @@ public class ClientDeviceListFragment extends ListFragment
         ((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged();
     }
 
-    // TODO: check what this function is needed for
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
@@ -266,15 +260,11 @@ public class ClientDeviceListFragment extends ListFragment
             progressDialog.dismiss();
         }
 
-        // Display this info if necessary
-        ((SpeakerFragmentListener) getActivity()).showInfo(info);
-
-        // TODO: check if this part is working
         // The group owner IP is now known.
         if (info.groupFormed && info.isGroupOwner) {
-            // TODO: clear old connections so that DJ mode always becomes group owner
+            // TODO: clear remembered groups (how?) so that DJ mode always becomes group owner
             // In Speaker mode, we must not be the group owner, or else we have a problem
-            Log.d(TAG, "Error: Speaker Mode became the group owner.");
+            Log.e(TAG, "Speaker Mode became the group owner.");
 
             Toast.makeText(contentView.getContext(), "Error: Speaker Mode became the group owner.",
                     Toast.LENGTH_SHORT).show();
@@ -282,8 +272,7 @@ public class ClientDeviceListFragment extends ListFragment
         } else if (info.groupFormed) {
             // WARNING:
             // depends on the timing, if we don't get a server back in time,
-            // we may end up running multiple threads of the client
-            // instance!
+            // we may end up running multiple threads of the client instance!
             if (this.clientThread == null) {
                 Thread client = new ClientSocketHandler(this.handler, info.groupOwnerAddress,
                         ((SpeakerFragmentListener) getActivity()).retrieveTimer());
@@ -305,8 +294,6 @@ public class ClientDeviceListFragment extends ListFragment
      * An interface-callback for the activity to listen to fragment interaction events.
      */
     public interface SpeakerFragmentListener {
-        void showDetails(WifiP2pDevice device);
-        void showInfo(WifiP2pInfo info);
         void cancelDisconnect();
         void connect(WifiP2pConfig config);
         void disconnect();

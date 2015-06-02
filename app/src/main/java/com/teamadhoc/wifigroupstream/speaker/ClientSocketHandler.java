@@ -65,7 +65,6 @@ public class ClientSocketHandler extends Thread {
                     continue;
                 }
 
-                // Need to handle sync messages
                 String recMsg = new String(buffer);
 
                 String[] cmdString = recMsg.split(ServerSocketHandler.CMD_DELIMITER);
@@ -76,13 +75,12 @@ public class ClientSocketHandler extends Thread {
                 // Receiving messages should be as fast as possible to ensure
                 // the successfulness of time synchronization
                 if (cmdString[0].equals(ServerSocketHandler.SYNC_CMD) && cmdString.length > 1) {
-                    // Check if we have received a timer parameter, if
-                    // so, set the time, then send back an Acknowledgment
+                    // Check if we have received a timer parameter,
+                    // if so, set the time, then send back an Acknowledgment
                     timer.setCurrTime(Long.parseLong(cmdString[1]));
 
                     // Just send the same message back to the server
                     oStream.write(recMsg.getBytes());
-                    // Send the obtained bytes to the UI Activity
                     Log.d(TAG, "Command sent: " + recMsg);
                 }
 

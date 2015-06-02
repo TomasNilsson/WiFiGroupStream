@@ -36,10 +36,8 @@ public class SongsManager {
             if(count > 0) {
                 while (cursor.moveToNext()) {
                     HashMap<String, String> song = new HashMap<String, String>();
-                    //song.put("songTitle", file.getName().substring(0, (file.getName().length() - 4)));
                     String path = cursor.getString(0);
                     song.put("songTitle", path.substring(path.lastIndexOf("/")+1));
-                    //song.put("songPath", file.getPath());
                     song.put("songPath", path);
                     Log.d("SongsManager", "Song: " + cursor.getString(0));
                     songsList.add(song);

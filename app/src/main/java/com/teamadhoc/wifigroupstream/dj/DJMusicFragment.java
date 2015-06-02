@@ -13,7 +13,6 @@ import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,9 +31,6 @@ import com.teamadhoc.wifigroupstream.Utilities;
 public class DJMusicFragment extends Fragment implements OnCompletionListener,
         SeekBar.OnSeekBarChangeListener {
     private final static String TAG = "DJMusicFragment";
-    // Json object for client server communication
-    private String isbtnPlay = "no";
-
     private ImageButton btnPlay;
     private ImageButton btnNext;
     private ImageButton btnPrevious;
@@ -66,8 +62,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
     private final static long DELAY = 4500;
     private final static int PLAY_FROM_BEGINNING = 0;
 
-    private String[] musicList = { "9129", "9231", "9232" }; // TODO: Why 9129,...?
-    protected String selectMusic = new String();
+    private String[] musicList;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -105,70 +100,59 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
         syncProgress.setMessage("Get Ready to Enjoy Your Music!");
         syncProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
-        // Mediaplayer
         mp = new MediaPlayer();
         songManager = new SongsManager(getActivity());
         utils = new Utilities();
 
         // Listeners
-        songProgressBar.setOnSeekBarChangeListener(this); // Important
-        mp.setOnCompletionListener(this); // Important
+        songProgressBar.setOnSeekBarChangeListener(this);
+        mp.setOnCompletionListener(this);
 
         // Getting all songs list
         songsList = songManager.getPlayList();
 
-        // TODO: By default play first song
-        // add time synchronize here()
-
         /**
-         * Play button click event plays a song and changes button to pause
-         * image pauses a song and changes button to play image
+         * Play button click event plays a song and changes button to pause.
+         * Pause image click pauses a song and changes button to play image.
          */
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 // Check if already playing, if it is, this acts as a pause button
-                if (mp.isPlaying()) {
-                    if (mp != null) {
-                        // Pause music play, and save the current playing position
-                        mp.pause();
-                        currentPlayPosition = mp.getCurrentPosition();
-
-                        ((DJActivity) activity).stopRemoteMusic();
-
-                        // Changing button image to play button
-                        btnPlay.setImageResource(R.drawable.btn_play);
-                    }
+                if (mp != null && mp.isPlaying()) {
+                    // Pause music play, and save the current playing position
+                    mp.pause();
+                    currentPlayPosition = mp.getCurrentPosition();
+                    activity.stopRemoteMusic();
+                    // Change button image to play button
+                    btnPlay.setImageResource(R.drawable.btn_play);
                 } else {
                     // Resume song
                     if (mp != null) {
                         // Resume music play
                         playSong(currentSongIndex, currentPlayPosition);
-
-                        // Changing button image to pause button
+                        // Change button image to pause button
                         btnPlay.setImageResource(R.drawable.btn_pause);
                     }
                 }
-
             }
         });
 
         /**
-         * Next button click event Plays next song by taking currentSongIndex + 1
+         * Next button click event plays next song by taking currentSongIndex + 1
          */
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
                 if (isShuffle) {
-                    // shuffle is on - play a random song
+                    // Shuffle is on - play a random song
                     Random rand = new Random();
-                    currentSongIndex = rand.nextInt((songsList.size() - 1) - 0 + 1) + 0;
+                    currentSongIndex = rand.nextInt(songsList.size());
                     playSong(currentSongIndex, PLAY_FROM_BEGINNING);
                 } else {
                     // Check if next song is there or not
                     if (currentSongIndex < (songsList.size() - 1)) {
-                        playSong(currentSongIndex + 1, PLAY_FROM_BEGINNING);
-                        currentSongIndex = currentSongIndex + 1;
+                        playSong(++currentSongIndex, PLAY_FROM_BEGINNING);
                     } else {
                         // Play first song
                         playSong(0, PLAY_FROM_BEGINNING);
@@ -179,7 +163,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
         });
 
         /**
-         * Back button click event Plays previous song by currentSongIndex - 1
+         * Back button click event plays previous song by currentSongIndex - 1
          */
         btnPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -187,12 +171,11 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
                 if (isShuffle) {
                     // Shuffle is on - play a random song
                     Random rand = new Random();
-                    currentSongIndex = rand.nextInt((songsList.size() - 1) - 0 + 1) + 0;
+                    currentSongIndex = rand.nextInt(songsList.size());
                     playSong(currentSongIndex, PLAY_FROM_BEGINNING);
                 } else {
                     if (currentSongIndex > 0) {
-                        playSong(currentSongIndex - 1, PLAY_FROM_BEGINNING);
-                        currentSongIndex = currentSongIndex - 1;
+                        playSong(--currentSongIndex, PLAY_FROM_BEGINNING);;
                     } else {
                         // Play last song
                         playSong(songsList.size() - 1, PLAY_FROM_BEGINNING);
@@ -203,7 +186,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
         });
 
         /**
-         * Button Click event for Repeat button Enables repeat flag to true
+         * Button Click event for Repeat button toggles repeat flag
          */
         btnRepeat.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,7 +208,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
         });
 
         /**
-         * Button Click event for Shuffle button Enables shuffle flag to true
+         * Button Click event for Shuffle button toggles shuffle flag
          */
         btnShuffle.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -247,8 +230,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
         });
 
         /**
-         * Button Click event for Play list click event Launches list activity
-         * which displays list of songs
+         * Button Click event for Playlist button launches list activity which displays list of songs
          */
         btnPlaylist.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -260,15 +242,12 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
                 builder.setSingleChoiceItems(musicList, -1, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int item){
                         currentSongIndex = item;
+                        // Play the user selected music
+                        playSong(currentSongIndex, PLAY_FROM_BEGINNING);
+                        dialog.dismiss();
                     }
                 });
 
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int position) {
-                        // Play the user selected music
-                        playSong(currentSongIndex, PLAY_FROM_BEGINNING);
-                    }
-                });
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }
@@ -282,7 +261,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
         ArrayList<HashMap<String, String>> songsListData = new ArrayList<HashMap<String, String>>();
         ArrayList<String> musicList = new ArrayList<String>();
         SongsManager songsManager = new SongsManager(getActivity());
-        // Get all songs from sdcard
+        // Get all songs from sd card
         this.songsList = songsManager.getPlayList();
 
         // Looping through playlist
@@ -316,7 +295,6 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
     }
 
     public void playSong(int songIndex, int playPosition) {
-        // Play song
         try {
             // Show the spinner and stop all user actions
             startSyncDialog();
@@ -340,7 +318,6 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
             // Get the music timer
             musicTimer = activity.getTimer();
 
-            // Music path : SD for DJ mode, UrI for speaker mode
             mp.setDataSource(musicFPath);
             songTitleLabel.setText("Now Playing: " + songTitle);
 
@@ -348,9 +325,8 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
             btnPlay.setImageResource(R.drawable.btn_pause);
             mp.prepare(); // prepareAsync doesn't work since we want the media file to be played synchronously.
 
-            // TODO: make sure we have buffered REALLY
-            // buffered the music, currently this is a big
-            // HACK and takes a lot of time. We can do better!
+            // TODO: make sure we have buffered music. Do we really need multiple start, pause?
+            // Buffer the music (currently this is a big HACK and takes a lot of time)
             mp.start();
             mp.pause();
             mp.start();
@@ -361,7 +337,6 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
             mp.pause();
             mp.start();
             mp.pause();
-
 
             long futurePlayTime = musicTimer.getCurrTime() + DELAY;
 
@@ -375,7 +350,7 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
             songProgressBar.setProgress(0);
             songProgressBar.setMax(100);
 
-            // Updating the song progress bar
+            // Update the song progress bar
             updateProgressBar();
         }
         catch (IllegalArgumentException e) {
@@ -467,25 +442,25 @@ public class DJMusicFragment extends Fragment implements OnCompletionListener,
     }
 
     /**
-     * On Song Playing completed if repeat is ON play same song again if shuffle
-     * is ON play random song
+     * On Song playing completed:
+     *  - if repeat is ON: play same song again
+     *  - if shuffle is ON: play random song
+     *  - else: play next song
      */
     @Override
     public void onCompletion(MediaPlayer arg0) {
-        // Check if repeat is ON or OFF
         if (isRepeat) {
             // Repeat is on - play same song again
             playSong(currentSongIndex, PLAY_FROM_BEGINNING);
         } else if (isShuffle) {
             // Shuffle is on - play a random song
             Random rand = new Random();
-            currentSongIndex = rand.nextInt((songsList.size() - 1) - 0 + 1) + 0;
+            currentSongIndex = rand.nextInt(songsList.size());
             playSong(currentSongIndex, PLAY_FROM_BEGINNING);
         } else {
             // No repeat or shuffle ON - play next song
             if (currentSongIndex < (songsList.size() - 1)) {
-                playSong(currentSongIndex + 1, PLAY_FROM_BEGINNING);
-                currentSongIndex = currentSongIndex + 1;
+                playSong(++currentSongIndex, PLAY_FROM_BEGINNING);
             } else {
                 // Play first song
                 playSong(0, PLAY_FROM_BEGINNING);

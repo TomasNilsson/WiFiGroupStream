@@ -43,14 +43,10 @@ public class SpeakerActivity extends Activity implements ChannelListener,
     private NfcAdapter nfcAdapter;
     private boolean isWifiP2pEnabled = false;
     private boolean channelRetried = false;
-    ProgressDialog progressDialog = null;
     private String myMac;
-
     private Timer timer;
     private CountDownTimer keepAliveTimer;
-    // keep the Wifi alive every 5 seconds
-    private static final int KEEPALIVE_INTERVAL = 5000;
-
+    private static final int KEEPALIVE_INTERVAL = 5000; // Keep the Wi-Fi alive every 5 seconds
     private final IntentFilter intentFilter = new IntentFilter();
     private Channel channel;
     private BroadcastReceiver receiver = null;
@@ -60,7 +56,7 @@ public class SpeakerActivity extends Activity implements ChannelListener,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_speaker);
 
-        // Add necessary intent values to be matched.
+        // Intent filters to catch the Wi-Fi Direct events
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -68,8 +64,6 @@ public class SpeakerActivity extends Activity implements ChannelListener,
 
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         channel = manager.initialize(this, getMainLooper(), null);
-
-        TextView txt_time = (TextView) this.findViewById(R.id.txt_speaker_time);
 
         // Start a timer with 25 ms precision
         this.timer = new Timer(Timer.DEFAULT_TIMER_PRECISION);
@@ -100,16 +94,17 @@ public class SpeakerActivity extends Activity implements ChannelListener,
         }
     }
 
+    // Enable Wi-Fi if it has been disabled
     public void enableWifi() {
         WifiManager wifiManager = (WifiManager) this.getSystemService(this.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
     }
 
-    // Register the BroadcastReceiver with the intent values to be matched
     @Override
     public void onResume() {
         super.onResume();
         receiver = new ClientWiFiDirectBroadcastReceiver(manager, channel, this);
+        // Register the BroadcastReceiver with the intent values to be matched
         registerReceiver(receiver, intentFilter);
 
         // Start discovering right away!
@@ -117,39 +112,11 @@ public class SpeakerActivity extends Activity implements ChannelListener,
         keepAliveTimer.start();
     }
 
-    /**
-     * UI to show the discovery process
-     */
-    public void onInitiateDiscovery() {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
-
-        progressDialog = ProgressDialog.show(this, "Press back to cancel",
-            "Finding DJs", true, true, new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                    // Stop discovery
-                    manager.stopPeerDiscovery(channel, new WifiP2pManager.ActionListener() {
-                        @Override
-                        public void onFailure(int reason) {
-                            Log.e(TAG, "Stopping Discovery Failed. Error Code is: " + reason);
-                        }
-
-                        @Override
-                        public void onSuccess() {
-                            Log.d(TAG, "Discovery stopped.");
-                        }
-                    });
-                }
-            });
-    }
-
     public void discoverDevices() {
         // Turn on the Wi-Fi P2P
-        WifiManager wifiManager = (WifiManager) this.getSystemService(this.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
+        enableWifi();
         channelRetried = false;
+
         manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -196,7 +163,6 @@ public class SpeakerActivity extends Activity implements ChannelListener,
     public NdefMessage createNdefMessage(NfcEvent event) {
         // Include the MAC address in the NdefMessage
         if (myMac == null) {
-            // TODO: handle error
             Log.e(TAG, "MAC address not received");
             return null;
         }
@@ -222,7 +188,7 @@ public class SpeakerActivity extends Activity implements ChannelListener,
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case NFC_MESSAGE_SENT:
-                    Toast.makeText(SpeakerActivity.this, "Connecting...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SpeakerActivity.this, "Connecting using NFC...", Toast.LENGTH_LONG).show();
                     break;
             }
         }
@@ -237,7 +203,7 @@ public class SpeakerActivity extends Activity implements ChannelListener,
 
     @Override
     public void onDestroy() {
-        // Also need to disconnect the clients, which is handled by disconnect // method
+        // Also need to disconnect the client, which is handled by the disconnect method
         disconnect();
         super.onDestroy();
     }
@@ -256,7 +222,7 @@ public class SpeakerActivity extends Activity implements ChannelListener,
                 if (manager != null && channel != null) {
                     // Since this is the system wireless settings activity, it's
                     // not going to send us a result. We will be notified by
-                    // WiFiDeviceBroadcastReceiver instead.
+                    // the Broadcast Receiver instead.
                     Intent intent = new Intent();
                     // Jump to Wi-Fi Direct settings
                     intent.setClassName("com.android.settings",
@@ -278,8 +244,7 @@ public class SpeakerActivity extends Activity implements ChannelListener,
 
     /**
      * Remove all peers and clear all fields. This is called on
-     * BroadcastReceiver receiving a state change event. This is merely an UI
-     * update.
+     * BroadcastReceiver receiving a state change event. This is merely an UI update.
      */
     public void resetDeviceList() {
         ClientDeviceListFragment fragmentList = (ClientDeviceListFragment) getFragmentManager()
@@ -290,47 +255,22 @@ public class SpeakerActivity extends Activity implements ChannelListener,
         }
     }
 
-    @Override
-    public void showDetails(WifiP2pDevice device) {
-        // TODO: This is for debugging, showing the device details
-        SpeakerMusicFragment fragMusic = (SpeakerMusicFragment) getFragmentManager()
-                .findFragmentById(R.id.fragment_speaker_music);
-    }
-
-    @Override
-    public void showInfo(WifiP2pInfo info) {
-        SpeakerMusicFragment fragMusic = (SpeakerMusicFragment) getFragmentManager()
-                .findFragmentById(R.id.fragment_speaker_music);
-
-        if (info.isGroupOwner) {
-            // fragMusic.setDebugText("I am the group owner.");
-        } else {
-            // fragMusic.setDebugText("I am not the group owner.");
-        }
-    }
-
     /*
      * Cancel an ongoing connection in progress.
      */
     @Override
     public void cancelDisconnect() {
-		/*
-		 * A cancel abort request by user. Disconnect i.e. removeGroup if
-		 * already connected. Else, request WifiP2pManager to abort the ongoing
-		 * request
-		 */
         if (manager != null) {
             Log.d(TAG, "Someone requested a cancel connect!");
 
             final ClientDeviceListFragment fragment = (ClientDeviceListFragment) getFragmentManager()
-                    .findFragmentById(R.id.frag_speaker_devices);
+                    .findFragmentById(R.id.frag_dj_devices);
 
             if (fragment.getDevice() == null || fragment.getDevice().status == WifiP2pDevice.CONNECTED) {
                 // disconnect();
             } else if (fragment.getDevice().status == WifiP2pDevice.AVAILABLE
-                    || fragment.getDevice().status == WifiP2pDevice.INVITED
-                    || fragment.getDevice().status == WifiP2pDevice.CONNECTED) {
-                manager.cancelConnect(channel, new ActionListener() {
+                    || fragment.getDevice().status == WifiP2pDevice.INVITED) {
+                manager.cancelConnect(channel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
                     }
@@ -355,12 +295,12 @@ public class SpeakerActivity extends Activity implements ChannelListener,
 
         // In Speaker mode, we don't want to become the group owner
         WifiP2pConfig newConfig = config;
-        newConfig.groupOwnerIntent = SPEAKER_MODE;
+        newConfig.groupOwnerIntent = SPEAKER_MODE; // Indicates the least inclination to be a group owner.
 
         manager.connect(channel, newConfig, new ActionListener() {
             @Override
             public void onSuccess() {
-                // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
+                // The Broadcast Receiver will notify us. Ignore for now.
             }
 
             @Override
@@ -379,8 +319,8 @@ public class SpeakerActivity extends Activity implements ChannelListener,
             return;
         }
 
-        // TODO: why do we have to remove the whole group upon disconnect?
-        // perhaps we only need to do so upon exiting DJ mode
+        // removeGroup removes the group from the speaker perspective, i.e. other speakers connected
+        // to the DJ will continue belonging the the DJ group.
         manager.removeGroup(channel, new ActionListener() {
             @Override
             public void onFailure(int reasonCode) {
@@ -389,12 +329,12 @@ public class SpeakerActivity extends Activity implements ChannelListener,
 
             @Override
             public void onSuccess() {
-                Toast.makeText(SpeakerActivity.this, "Disconnected.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SpeakerActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Disconnected from a device.");
             }
         });
 
-        // Also need to disconnect the clients
+        // Also need to disconnect the client
         ClientDeviceListFragment fragmentList = (ClientDeviceListFragment) getFragmentManager()
                 .findFragmentById(R.id.frag_speaker_devices);
 
@@ -410,7 +350,7 @@ public class SpeakerActivity extends Activity implements ChannelListener,
     public void onChannelDisconnected() {
         // We will try once more
         if (manager != null && !channelRetried) {
-            Toast.makeText(this, "Wi-fi Direct Channel lost. Trying again...",
+            Toast.makeText(this, "Wi-Fi Direct Channel lost. Trying again...",
                     Toast.LENGTH_LONG).show();
             resetDeviceList();
 
@@ -418,11 +358,11 @@ public class SpeakerActivity extends Activity implements ChannelListener,
             manager.initialize(this, getMainLooper(), this);
         } else {
             Toast.makeText(this,
-                    "Wi-Fi Direct Channel is still lost. Try disabling / re-enabling Wi-fi Direct in the P2P Settings.",
+                    "Wi-Fi Direct Channel is still lost. Try disabling / re-enabling Wi-Fi Direct in the P2P Settings.",
                     Toast.LENGTH_LONG).show();
         }
 
-        // Also need to disconnect the clients
+        // Also need to disconnect the client
         ClientDeviceListFragment fragmentList = (ClientDeviceListFragment) getFragmentManager()
                 .findFragmentById(R.id.frag_speaker_devices);
 

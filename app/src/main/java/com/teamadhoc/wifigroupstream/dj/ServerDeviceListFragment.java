@@ -46,13 +46,10 @@ public class ServerDeviceListFragment extends ListFragment
     ProgressDialog progressDialog = null;
     private View contentView = null;
     private WifiP2pDevice device;
-
-    // TODO: check what we need these variables for
     private final Handler handler = new Handler(this);
     private ServerSocketHandler serverThread;
     private String httpHostIP = null;
     private Activity activity = null;
-
     private File wwwroot = null;
     private NanoHTTPD httpServer = null;
     public static final int HTTP_PORT = 9002;
@@ -160,8 +157,6 @@ public class ServerDeviceListFragment extends ListFragment
                 ((DJFragmentListener) getActivity()).discoverDevices();
                 break;
         }
-
-        ((DJFragmentListener) getActivity()).showDetails(device);
     }
 
     /**
@@ -193,8 +188,8 @@ public class ServerDeviceListFragment extends ListFragment
                     top.setText(device.deviceName);
                 }
                 if (bottom != null) {
-                    // Show the invited dialog
                     if (device.status == WifiP2pDevice.INVITED) {
+                        // Show the invited dialog
                         if (progressDialog != null && progressDialog.isShowing()) {
                             progressDialog.dismiss();
                         }
@@ -240,7 +235,6 @@ public class ServerDeviceListFragment extends ListFragment
         ((WiFiPeerListAdapter) getListAdapter()).notifyDataSetChanged();
     }
 
-    // TODO: check what this function is needed for
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
@@ -250,8 +244,7 @@ public class ServerDeviceListFragment extends ListFragment
                 break;
 
             default:
-                Log.d(TAG, "I thought we heard something? Message type: "
-                        + msg.what);
+                Log.d(TAG, "Message type: " + msg.what);
                 break;
         }
         return true;
@@ -263,17 +256,12 @@ public class ServerDeviceListFragment extends ListFragment
             progressDialog.dismiss();
         }
 
-        // Display this info if necessary
-        ((DJFragmentListener) getActivity()).showInfo(info);
-
-        // TODO: check if this part is working
         // The group owner IP is now known.
         if (info.groupFormed && info.isGroupOwner) {
             try {
                 // WARNING:
                 // depends on the timing, if we don't get a server back in time,
-                // we may end up running multiple threads of the server
-                // instance!
+                // we may end up running multiple threads of the server instance!
                 if (this.serverThread == null) {
                     Thread server = new ServerSocketHandler(this.handler);
                     server.start();
@@ -304,10 +292,9 @@ public class ServerDeviceListFragment extends ListFragment
                 Log.e(TAG, "Can't start server.", e);
             }
         } else if (info.groupFormed) {
-            // TODO: clear old connections so that DJ mode always becomes group owner
+            // TODO: clear remembered groups (how?) so that DJ mode always becomes group owner
             // In DJ mode, we must be the group owner, or else we have a problem
-            Log.d(TAG, "Error: DJ Mode did not become the group owner.");
-
+            Log.e(TAG, "DJ Mode did not become the group owner.");
             Toast.makeText(contentView.getContext(), "Error: DJ Mode did not become the group owner.",
                     Toast.LENGTH_SHORT).show();
         }
@@ -355,8 +342,6 @@ public class ServerDeviceListFragment extends ListFragment
      * An interface-callback for the activity to listen to fragment interaction events.
      */
     public interface DJFragmentListener {
-        void showDetails(WifiP2pDevice device);
-        void showInfo(WifiP2pInfo info);
         void cancelDisconnect();
         void connect(WifiP2pConfig config);
         void disconnect();

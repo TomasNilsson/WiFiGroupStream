@@ -14,7 +14,7 @@ import com.teamadhoc.wifigroupstream.R;
  * A BroadcastReceiver that notifies of important Wi-Fi P2P events.
  */
 public class ServerWiFiDirectBroadcastReceiver extends BroadcastReceiver{
-    public static final String TAG = "ServerWiFiDirectBroadcastRec";
+    public static final String TAG = "WiFiDirectBroadcastRec";
 
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
